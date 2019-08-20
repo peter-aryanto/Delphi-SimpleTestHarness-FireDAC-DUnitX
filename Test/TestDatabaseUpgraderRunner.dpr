@@ -14,16 +14,47 @@ program TestDatabaseUpgraderRunner;
 {$APPTYPE CONSOLE}
 //{$ENDIF}
 
-uses
-  DUnitTestRunner;
-
 {$R *.RES}
+
+uses
+  {DUnitTestRunner}TextTestRunner,
+  TestFramework,
+  System.SysUtils,
+  BackupOriginalFile;
+
+const
+  CTestDbFile = {.\bin\}'..\Resource\TestDatabase.fdb';
+
+var
+  GCurrentApplicationPath: string = '';
+  GTestDbFile: IBackupOriginalFile;
+  GTestResult: TTestResult = nil;
+  GIsEveryTestPassed: Boolean = False;
 
 begin
 {$IFDEF DEBUG}
   ReportMemoryLeaksOnShutdown := True;
 {$ENDIF}
 
-  DUnitTestRunner.RunRegisteredTests;
+  GCurrentApplicationPath := ExtractFilePath(ParamStr(0));
+  GTestDbFile := TBackupOriginalFile.Create;
+  try
+    GTestDbFile.CreateCopy(GCurrentApplicationPath + CTestDbFile);
+
+    GTestResult := {DUnitTestRunner}TextTestRunner.RunRegisteredTests;
+
+    GIsEveryTestPassed := GTestResult.ErrorCount + GTestResult.FailureCount = 0;
+  finally
+    GTestResult.Free;
+
+  {$IFDEF DEBUG}
+    Write('Press any key ... ');
+    Readln;
+  {$ENDIF}
+
+    if not GIsEveryTestPassed then
+      Halt(1);
+  end;
+
 end.
 
