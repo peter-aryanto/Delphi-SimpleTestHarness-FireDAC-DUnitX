@@ -5,10 +5,10 @@ interface
 type
   IBackupOriginalFile = interface
     ['{B25F67D8-799A-4013-B578-952B7C2A5587}']
-    function CreateCopy(const AOriginalFile: string;
-      const ABackupExtension: string = '$$$'
+    function CreateBackup(const AOriginalFile: string;
+      const ABackupExtension: string = 'bak'
     ): string;
-    procedure UpdateOriginalWithLatestCopy;
+    procedure Rollback;
   end;
 
   TBackupOriginalFile = class(TInterfacedObject, IBackupOriginalFile)
@@ -16,10 +16,10 @@ type
     FOriginalFile: string;
     FCopyFile: string;
   public
-    function CreateCopy(const AOriginalFile: string;
-      const ABackupExtension: string = '$$$'
+    function CreateBackup(const AOriginalFile: string;
+      const ABackupExtension: string = 'bak'
     ): string;
-    procedure UpdateOriginalWithLatestCopy;
+    procedure Rollback;
   end;
 
 implementation
@@ -28,8 +28,8 @@ uses
   System.SysUtils,
   System.IOUtils;
 
-function TBackupOriginalFile.CreateCopy(const AOriginalFile: string;
-  const ABackupExtension: string = '$$$'
+function TBackupOriginalFile.CreateBackup(const AOriginalFile: string;
+  const ABackupExtension: string = 'bak'
 ): string;
 var
   LCopyFile: string;
@@ -37,16 +37,18 @@ begin
   if not FileExists(AOriginalFile) then
     raise Exception.Create('Missing original file: ' + AOriginalFile);
 
+  LCopyFile := ChangeFileExt(AOriginalFile, '.' + ABackupExtension);
+  TFile.Copy(AOriginalFile, LCopyFile, True);
+
+  if not FileExists(LCopyFile) then
+    raise Exception('Failed to create backup copy from original file: ' + AOriginalFile);
+
   FOriginalFile := AOriginalFile;
-
-  LCopyFile := ChangeFileExt(FOriginalFile, '.' + ABackupExtension);
-  TFile.Copy(FOriginalFile, LCopyFile, True);
   FCopyFile := LCopyFile;
-
   Result := LCopyFile;
 end;
 
-procedure TBackupOriginalFile.UpdateOriginalWithLatestCopy;
+procedure TBackupOriginalFile.Rollback;
 begin
   if not FileExists(FCopyFile) then
     raise Exception.Create('Missing backup/copy file: ' + FCopyFile);

@@ -23,28 +23,26 @@ begin
           + ExtractFileName(ParamStr(0)) + ' <a database file>');
 
     GDbFileBackup := TBackupOriginalFile.Create;
-    GDbFileBackup.CreateCopy(ParamStr(1));
+    GDbFileBackup.CreateBackup(ParamStr(1), FormatDateTime('yyyymmddhhnnss', Now));
 
     // Upgrade DB ...
 
-    GDbFileBackup.UpdateOriginalWithLatestCopy;
     GIsSuccessful := True;
 
   except
     on E: Exception do
     begin
-      {Log.Error}Writeln(E.Message);
+      GDbFileBackup.Rollback;
 
-      if Assigned(E.InnerException) then
-        {Log.Debug}Writeln(E.InnerException.Message);
+      {Log.Error}Writeln(E.Message);
     end;
   end;
 
 {$IFDEF DEBUG}
-  Write('Press any key ... ');
+  Write('Press ENTER ... ');
   Readln;
 {$ENDIF}
 
   if not GIsSuccessful then
-    Halt(1);
+    ExitCode := 1;
 end.

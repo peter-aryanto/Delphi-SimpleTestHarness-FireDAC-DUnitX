@@ -27,7 +27,8 @@ const
 
 var
   GCurrentApplicationPath: string = '';
-  GTestDbFile: IBackupOriginalFile;
+  GTestDbFileBackup: IBackupOriginalFile = nil;
+  GTestDbFile: string = '';
   GTestResult: TTestResult = nil;
   GIsEveryTestPassed: Boolean = False;
 
@@ -37,9 +38,9 @@ begin
 {$ENDIF}
 
   GCurrentApplicationPath := ExtractFilePath(ParamStr(0));
-  GTestDbFile := TBackupOriginalFile.Create;
+  GTestDbFileBackup := TBackupOriginalFile.Create;
   try
-    GTestDbFile.CreateCopy(GCurrentApplicationPath + CTestDbFile);
+    GTestDbFile := GTestDbFileBackup.CreateBackup(GCurrentApplicationPath + CTestDbFile, 'test');
 
     GTestResult := {DUnitTestRunner}TextTestRunner.RunRegisteredTests;
 
@@ -48,12 +49,12 @@ begin
     GTestResult.Free;
 
   {$IFDEF DEBUG}
-    Write('Press any key ... ');
+    Write('Press ENTER ... ');
     Readln;
   {$ENDIF}
 
     if not GIsEveryTestPassed then
-      Halt(1);
+      ExitCode := 1;
   end;
 
 end.
