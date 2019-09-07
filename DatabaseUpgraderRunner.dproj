@@ -152,6 +152,7 @@
         </DelphiCompile>
         <DCCReference Include="Lib\BackupOriginalFile.pas"/>
         <DCCReference Include="CommonDatabaseUpgraderRunner.pas"/>
+        <DCCReference Include="FirebirdDatabaseUpgraderRunner.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

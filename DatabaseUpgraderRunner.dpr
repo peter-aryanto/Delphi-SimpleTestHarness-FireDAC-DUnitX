@@ -7,7 +7,8 @@ program DatabaseUpgraderRunner;
 uses
   System.SysUtils,
   BackupOriginalFile in 'Lib\BackupOriginalFile.pas',
-  CommonDatabaseUpgraderRunner in 'CommonDatabaseUpgraderRunner.pas';
+  CommonDatabaseUpgraderRunner in 'CommonDatabaseUpgraderRunner.pas',
+  FirebirdDatabaseUpgraderRunner in 'FirebirdDatabaseUpgraderRunner.pas';
 
 var
   GDbFileBackup: IBackupOriginalFile = nil;

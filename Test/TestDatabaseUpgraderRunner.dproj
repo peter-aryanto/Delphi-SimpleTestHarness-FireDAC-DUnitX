@@ -56,6 +56,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <DCC_UnitSearchPath>$(BDS)\Source\DUnit\src.NotUSED;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_UnitSearchPath>$(BDS)\Source\DUnit\src.NotUSED;..\Lib;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>$(BDS)\Source\DUnit\src.NotUSED;..\Lib;..;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_Define>CONSOLE_TESTRUNNER;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_OSX32)'!=''">
@@ -94,6 +95,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="TestFirebirdDatabaseUpgraderRunner.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

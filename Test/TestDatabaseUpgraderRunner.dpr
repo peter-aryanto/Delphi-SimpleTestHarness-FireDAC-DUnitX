@@ -20,7 +20,9 @@ uses
   {DUnitTestRunner}TextTestRunner,
   TestFramework,
   System.SysUtils,
-  BackupOriginalFile;
+  BackupOriginalFile,
+  TestConstants,
+  TestFirebirdDatabaseUpgraderRunner in 'TestFirebirdDatabaseUpgraderRunner.pas';
 
 const
   CTestDbFile = {.\bin\}'..\Resource\TestDatabase.fdb';
@@ -40,7 +42,8 @@ begin
   GCurrentApplicationPath := ExtractFilePath(ParamStr(0));
   GTestDbFileBackup := TBackupOriginalFile.Create;
   try
-    GTestDbFile := GTestDbFileBackup.CreateBackup(GCurrentApplicationPath + CTestDbFile, 'test');
+    GTestDbFile := GTestDbFileBackup.CreateBackup(GCurrentApplicationPath + COriginalTestDbFile,
+      CTestDbFileExtension);
 
     GTestResult := {DUnitTestRunner}TextTestRunner.RunRegisteredTests;
 
