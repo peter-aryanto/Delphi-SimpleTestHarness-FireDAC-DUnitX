@@ -8,7 +8,10 @@ uses
   System.SysUtils,
   BackupOriginalFile in 'Lib\BackupOriginalFile.pas',
   CommonDatabaseUpgraderRunner in 'CommonDatabaseUpgraderRunner.pas',
-  FirebirdDatabaseUpgraderRunner in 'FirebirdDatabaseUpgraderRunner.pas';
+  FirebirdDatabaseUpgraderRunner in 'FirebirdDatabaseUpgraderRunner.pas',
+  DatabaseUpgraderRunnerConstants in 'DatabaseUpgraderRunnerConstants.pas',
+  CommonDatabaseUpgraderQuery in 'CommonDatabaseUpgraderQuery.pas',
+  FirebirdDatabaseUpgraderQuery in 'FirebirdDatabaseUpgraderQuery.pas';
 
 { The main process needs to be contained using a method (this method) so that its anonymous method
   for OnMessage does not cause a memory leak.
@@ -19,6 +22,8 @@ var
   LTestDbFile: string;
   LRunner: ICommonDatabaseUpgraderRunner;
 begin
+  Result := False;
+
   LDbFileBackup := TBackupOriginalFile.Create;
   try
     { Ideally, after backing up the original database file (by just 1 call to CreateBackup method
@@ -31,7 +36,9 @@ begin
     LTestDbFile := LDbFileBackup.CreateBackup(ADbFile, FormatDateTime('yyyymmddhhnnss', Now));
     LDbFileBackup.CreateBackup(LTestDbFile, 'test');
 
-    LRunner := TCommonDatabaseUpgraderRunner.Create;
+    LRunner := TFirebirdDatabaseUpgraderRunner.Create(ExtractFilePath(ParamStr(0))
+        + '.\fbembed.dll');
+
     LRunner.OnMessage := procedure (const AMessage: string)
       begin
         Writeln(AMessage);
@@ -54,10 +61,10 @@ begin
     begin
       LDbFileBackup.Rollback;
 
-      if Assigned(LRunner) then
+      if Assigned(LRunner) and (LRunner.ErrorMessage <> '') then
       begin
-        if LRunner.ErrorMessage <> '' then
-          {Log.Error}Writeln(LRunner.ErrorMessage);
+        {Log.Error}Writeln(LRunner.ErrorMessage);
+
         if LRunner.ErrorDetails <> '' then
           {Log.Debug}Writeln(LRunner.ErrorDetails);
       end

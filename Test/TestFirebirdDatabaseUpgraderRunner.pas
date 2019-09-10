@@ -4,7 +4,8 @@ interface
 
 uses
   TestFramework, TestExtensions,
-  CommonDatabaseUpgraderRunner, FirebirdDatabaseUpgraderRunner;
+  CommonDatabaseUpgraderRunner, FirebirdDatabaseUpgraderRunner,
+  FireDAC.Comp.Client;
 
 type
   TestSetupFirebirdDatabaseUpgraderRunner = class(TTestSetup)
@@ -14,6 +15,8 @@ type
   protected
     procedure SetUp; override;
   public
+    class function CreateFirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner;
+    class procedure SetTestDbLocation;
     class property CurrentApplicationPath: string read FCurrentApplicationPath;
     class property FirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner
       read FFirebirdDatabaseUpgraderRunner;
@@ -22,10 +25,15 @@ type
   TestTFirebirdDatabaseUpgraderRunner = class(TTestCase)
   strict private
     function TestSetup: ICommonDatabaseUpgraderRunner;
-    procedure SetTestDbLocation;
+    function GetTestDatabaseTransaction: TFDTransaction;
   published
-    procedure TestGetDbLocation;
-    procedure TestSetDbLocation;
+    procedure TestGetDatabaseLocation;
+    procedure TestSetDatabaseLocation;
+    procedure TestGetDatabaseVersionAsInteger;
+    procedure TestGetDatabaseVersionAsString;
+    procedure TestStartTransaction;
+    procedure TestCommitTransaction;
+    procedure TestRollbackTransaction;
     procedure TestRunUpgrade;
   end;
 
@@ -33,18 +41,29 @@ implementation
 
 uses
   TestConstants,
-  System.SysUtils,
-  FireDAC.Comp.Client;
+  System.SysUtils;
 
 procedure TestSetupFirebirdDatabaseUpgraderRunner.SetUp;
 begin
-  inherited;
+  TestSetupFirebirdDatabaseUpgraderRunner.CreateFirebirdDatabaseUpgraderRunner;
+end;
 
+class function TestSetupFirebirdDatabaseUpgraderRunner.CreateFirebirdDatabaseUpgraderRunner:
+  ICommonDatabaseUpgraderRunner;
+begin
   FCurrentApplicationPath := ExtractFilePath(ParamStr(0));
 
   FFirebirdDatabaseUpgraderRunner := nil;
   FFirebirdDatabaseUpgraderRunner := TFirebirdDatabaseUpgraderRunner.Create(FCurrentApplicationPath
       + CTestFbEmbeddedFile);
+
+  Result := FFirebirdDatabaseUpgraderRunner;
+end;
+
+class procedure TestSetupFirebirdDatabaseUpgraderRunner.SetTestDbLocation;
+begin
+  FFirebirdDatabaseUpgraderRunner.DatabaseLocation :=
+    TestSetupFirebirdDatabaseUpgraderRunner.CurrentApplicationPath + CTestDbFile;
 end;
 
 function TestTFirebirdDatabaseUpgraderRunner.TestSetup: ICommonDatabaseUpgraderRunner;
@@ -52,22 +71,61 @@ begin
   Result := TestSetupFirebirdDatabaseUpgraderRunner.FirebirdDatabaseUpgraderRunner;
 end;
 
-procedure TestTFirebirdDatabaseUpgraderRunner.TestGetDbLocation;
+procedure TestTFirebirdDatabaseUpgraderRunner.TestGetDatabaseLocation;
 begin
   CheckEquals('', TestSetup.DatabaseLocation);
 end;
 
-procedure TestTFirebirdDatabaseUpgraderRunner.TestSetDbLocation;
+procedure TestTFirebirdDatabaseUpgraderRunner.TestSetDatabaseLocation;
 begin
-  SetTestDbLocation;
+  TestSetupFirebirdDatabaseUpgraderRunner.SetTestDbLocation;
   CheckEquals(TestSetupFirebirdDatabaseUpgraderRunner.CurrentApplicationPath + CTestDbFile,
     TestSetup.DatabaseLocation);
 end;
 
-procedure TestTFirebirdDatabaseUpgraderRunner.SetTestDbLocation;
+procedure TestTFirebirdDatabaseUpgraderRunner.TestGetDatabaseVersionAsInteger;
 begin
-  TestSetup.DatabaseLocation := TestSetupFirebirdDatabaseUpgraderRunner.CurrentApplicationPath
-      + CTestDbFile;
+  CheckEquals(TestSetup.GetDatabaseVersionAsInteger, CInitialDbVersionAsInteger);
+end;
+
+procedure TestTFirebirdDatabaseUpgraderRunner.TestGetDatabaseVersionAsString;
+begin
+  CheckEquals(TestSetup.GetDatabaseVersionAsString(TestSetup.GetDatabaseVersionAsInteger),
+    CInitialDbVersionAsString);
+end;
+
+function TestTFirebirdDatabaseUpgraderRunner.GetTestDatabaseTransaction: TFDTransaction;
+begin
+  Result := (TestSetup.GetDatabaseConnection as TFDConnection).Transaction as TFDTransaction;
+end;
+
+procedure TestTFirebirdDatabaseUpgraderRunner.TestStartTransaction;
+begin
+  CheckTrue(not GetTestDatabaseTransaction.Active,
+    'Initially, it is expected that database transaction is NOT active.');
+  TestSetup.StartTransaction;
+  CheckTrue(GetTestDatabaseTransaction.Active,
+    'After being started, database transaction should be active.');
+end;
+
+procedure TestTFirebirdDatabaseUpgraderRunner.TestCommitTransaction;
+begin
+  if not GetTestDatabaseTransaction.Active then
+    TestStartTransaction;
+
+  TestSetup.CommitTransaction;
+  CheckTrue(not GetTestDatabaseTransaction.Active,
+    'After commit, it is expected that database transaction is NO longer active.');
+end;
+
+procedure TestTFirebirdDatabaseUpgraderRunner.TestRollbackTransaction;
+begin
+  if not GetTestDatabaseTransaction.Active then
+    TestStartTransaction;
+
+  TestSetup.RollbackTransaction;
+  CheckTrue(not GetTestDatabaseTransaction.Active,
+    'After rollback, it is expected that database transaction is NO longer active.');
 end;
 
 procedure TestTFirebirdDatabaseUpgraderRunner.TestRunUpgrade;

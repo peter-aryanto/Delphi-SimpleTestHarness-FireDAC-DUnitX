@@ -22,7 +22,8 @@ uses
   System.SysUtils,
   BackupOriginalFile,
   TestConstants,
-  TestFirebirdDatabaseUpgraderRunner in 'TestFirebirdDatabaseUpgraderRunner.pas';
+  TestFirebirdDatabaseUpgraderRunner in 'TestFirebirdDatabaseUpgraderRunner.pas',
+  TestFirebirdDatabaseUpgraderQuery in 'TestFirebirdDatabaseUpgraderQuery.pas';
 
 const
   CTestDbFile = {.\bin\}'..\Resource\TestDatabase.fdb';

@@ -2,10 +2,13 @@ unit CommonDatabaseUpgraderRunner;
 
 interface
 
+uses
+  Data.DB;
+
 type
   TDatabaseUpgraderRunnerOnMessage = reference to procedure(const AMessage: string);
 
-  IPrivateCommonDatabaseUpgraderRunner = interface
+  IInternalCommonDatabaseUpgraderRunner = interface
     ['{7EA27605-27C6-4D83-9B8B-010AC6B7FAE4}']
     procedure SetOnMessage(const AOnMessage: TDatabaseUpgraderRunnerOnMessage);
     {For property DatabaseLocation:}
@@ -15,10 +18,16 @@ type
     function GetErrorDetails: string;
   end;
 
-  ICommonDatabaseUpgraderRunner = interface(IPrivateCommonDatabaseUpgraderRunner)
+  ICommonDatabaseUpgraderRunner = interface(IInternalCommonDatabaseUpgraderRunner)
     ['{E158FA99-2A4D-4D7C-99BF-A19CAB0C67FA}']
     property OnMessage: TDatabaseUpgraderRunnerOnMessage write SetOnMessage;
     property DatabaseLocation: string read GetDatabaseLocation write SetDatabaseLocation;
+    function GetDatabaseConnection: TCustomConnection;
+    function GetDatabaseVersionAsInteger: Integer;
+    function GetDatabaseVersionAsString(const AVersion: Integer): string;
+    procedure StartTransaction;
+    procedure CommitTransaction;
+    procedure RollbackTransaction;
     function RunUpgrade: Boolean;
     property ErrorMessage: string read GetErrorMessage;
     property ErrorDetails: string read GetErrorDetails;
@@ -41,6 +50,12 @@ type
       function GetDatabaseLocation: string; virtual;
       procedure SetDatabaseLocation(const ADatabaseLocation: string); virtual;
   public {Interface methods}
+    function GetDatabaseConnection: TCustomConnection; virtual; abstract;
+    function GetDatabaseVersionAsInteger: Integer; virtual; abstract;
+    function GetDatabaseVersionAsString(const AVersion: Integer): string; virtual; abstract;
+    procedure StartTransaction; virtual; abstract;
+    procedure CommitTransaction; virtual; abstract;
+    procedure RollbackTransaction; virtual; abstract;
     function RunUpgrade: Boolean; virtual;
   end;
 

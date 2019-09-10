@@ -12,8 +12,8 @@ const
   CTestDbFileExtension = 'test';
   CTestDbFile = CTestResourcePath + CTestDbFileName + '.' + CTestDbFileExtension;
 
-  CInitialDbVersionAsNumber = 3000;
-  CInitialDbVersionAsText = '30.00';
+  CInitialDbVersionAsInteger = 3000;
+  CInitialDbVersionAsString = '30.00';
 
 implementation
 
