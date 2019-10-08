@@ -11,7 +11,9 @@ uses
   FirebirdDatabaseUpgraderRunner in 'FirebirdDatabaseUpgraderRunner.pas',
   DatabaseUpgraderRunnerConstants in 'DatabaseUpgraderRunnerConstants.pas',
   CommonDatabaseUpgraderQuery in 'CommonDatabaseUpgraderQuery.pas',
-  FirebirdDatabaseUpgraderQuery in 'FirebirdDatabaseUpgraderQuery.pas';
+  FirebirdDatabaseUpgraderQuery in 'FirebirdDatabaseUpgraderQuery.pas',
+  CommonDatabaseUpgraderScript in 'CommonDatabaseUpgraderScript.pas',
+  FirebirdDatabaseUpgraderScript in 'FirebirdDatabaseUpgraderScript.pas';
 
 { The main process needs to be contained using a method (this method) so that its anonymous method
   for OnMessage does not cause a memory leak.

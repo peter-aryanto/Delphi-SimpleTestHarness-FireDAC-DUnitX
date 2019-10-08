@@ -23,7 +23,8 @@ uses
   BackupOriginalFile,
   TestConstants,
   TestFirebirdDatabaseUpgraderRunner in 'TestFirebirdDatabaseUpgraderRunner.pas',
-  TestFirebirdDatabaseUpgraderQuery in 'TestFirebirdDatabaseUpgraderQuery.pas';
+  TestFirebirdDatabaseUpgraderQuery in 'TestFirebirdDatabaseUpgraderQuery.pas',
+  TestFirebirdDatabaseUpgraderScript in 'TestFirebirdDatabaseUpgraderScript.pas';
 
 const
   CTestDbFile = {.\bin\}'..\Resource\TestDatabase.fdb';

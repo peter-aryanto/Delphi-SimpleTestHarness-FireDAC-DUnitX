@@ -156,6 +156,8 @@
         <DCCReference Include="DatabaseUpgraderRunnerConstants.pas"/>
         <DCCReference Include="CommonDatabaseUpgraderQuery.pas"/>
         <DCCReference Include="FirebirdDatabaseUpgraderQuery.pas"/>
+        <DCCReference Include="CommonDatabaseUpgraderScript.pas"/>
+        <DCCReference Include="FirebirdDatabaseUpgraderScript.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

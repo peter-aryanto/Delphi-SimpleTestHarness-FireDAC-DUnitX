@@ -15,7 +15,7 @@ type
   protected
     procedure SetUp; override;
   public
-    class function CreateFirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner;
+    class function CreateRunner: ICommonDatabaseUpgraderRunner;
     class procedure SetTestDbLocation;
     class property CurrentApplicationPath: string read FCurrentApplicationPath;
     class property FirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner
@@ -45,11 +45,10 @@ uses
 
 procedure TestSetupFirebirdDatabaseUpgraderRunner.SetUp;
 begin
-  TestSetupFirebirdDatabaseUpgraderRunner.CreateFirebirdDatabaseUpgraderRunner;
+  TestSetupFirebirdDatabaseUpgraderRunner.CreateRunner;
 end;
 
-class function TestSetupFirebirdDatabaseUpgraderRunner.CreateFirebirdDatabaseUpgraderRunner:
-  ICommonDatabaseUpgraderRunner;
+class function TestSetupFirebirdDatabaseUpgraderRunner.CreateRunner: ICommonDatabaseUpgraderRunner;
 begin
   FCurrentApplicationPath := ExtractFilePath(ParamStr(0));
 

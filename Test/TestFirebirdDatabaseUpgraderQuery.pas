@@ -4,7 +4,8 @@ interface
 
 uses
   TestFramework,
-  CommonDatabaseUpgraderRunner, TestFirebirdDatabaseUpgraderRunner,
+  FireDAC.Comp.Client,
+  CommonDatabaseUpgraderRunner,
   CommonDatabaseUpgraderQuery, FirebirdDatabaseUpgraderQuery;
 
 type
@@ -23,11 +24,14 @@ type
   strict private
     FFirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner;
 //    FFirebirdDatabaseUpgraderQuery: ICommonDatabaseUpgraderQuery;
-    function CreateQuery: ICommonDatabaseUpgraderQuery;
+    function CreateQuery: ICommonDatabaseUpgraderQuery; overload;
     function GetTestNonSelectQuery: string;
   public
     procedure SetUp; override;
 //    procedure TearDown; override;
+    class function CreateQuery(
+      const ADatabaseConnection: TFDConnection
+    ): ICommonDatabaseUpgraderQuery; overload;
   published
     procedure TestSqlProperty;
     procedure TestExecuteSelectQuery;
@@ -37,14 +41,13 @@ type
 implementation
 
 uses
-  FireDAC.Comp.Client,
+  TestFirebirdDatabaseUpgraderRunner,
   Data.DB,
   TestConstants;
 
 procedure TestTFirebirdDatabaseUpgraderQuery.SetUp;
 begin
-  FFirebirdDatabaseUpgraderRunner :=
-    TestSetupFirebirdDatabaseUpgraderRunner.CreateFirebirdDatabaseUpgraderRunner;
+  FFirebirdDatabaseUpgraderRunner := TestSetupFirebirdDatabaseUpgraderRunner.CreateRunner;
   TestSetupFirebirdDatabaseUpgraderRunner.SetTestDbLocation;
 //  FFirebirdDatabaseUpgraderQuery := TFirebirdDatabaseUpgraderQuery.Create(
 //    FFirebirdDatabaseUpgraderRunner.GetDatabaseConnection as TFDConnection);
@@ -59,6 +62,13 @@ function TestTFirebirdDatabaseUpgraderQuery.CreateQuery: ICommonDatabaseUpgrader
 begin
   Result := TFirebirdDatabaseUpgraderQuery.Create(
     FFirebirdDatabaseUpgraderRunner.GetDatabaseConnection as TFDConnection);
+end;
+
+class function TestTFirebirdDatabaseUpgraderQuery.CreateQuery(
+  const ADatabaseConnection: TFDConnection
+): ICommonDatabaseUpgraderQuery;
+begin
+  Result := TFirebirdDatabaseUpgraderQuery.Create(ADatabaseConnection);
 end;
 
 procedure TestTFirebirdDatabaseUpgraderQuery.TestSqlProperty;
