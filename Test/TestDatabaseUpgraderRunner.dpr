@@ -24,7 +24,8 @@ uses
   TestConstants,
   TestFirebirdDatabaseUpgraderRunner in 'TestFirebirdDatabaseUpgraderRunner.pas',
   TestFirebirdDatabaseUpgraderQuery in 'TestFirebirdDatabaseUpgraderQuery.pas',
-  TestFirebirdDatabaseUpgraderScript in 'TestFirebirdDatabaseUpgraderScript.pas';
+  TestFirebirdDatabaseUpgraderScript in 'TestFirebirdDatabaseUpgraderScript.pas',
+  TestDatabaseUpgraderProcessCollection in 'TestDatabaseUpgraderProcessCollection.pas';
 
 const
   CTestDbFile = {.\bin\}'..\Resource\TestDatabase.fdb';
