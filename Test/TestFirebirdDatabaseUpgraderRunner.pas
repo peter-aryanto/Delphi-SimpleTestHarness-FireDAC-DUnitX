@@ -41,7 +41,8 @@ implementation
 
 uses
   TestConstants,
-  System.SysUtils;
+  System.SysUtils,
+  SampleDatabaseUpgraderProcessCollection;
 
 procedure TestSetupFirebirdDatabaseUpgraderRunner.SetUp;
 begin
@@ -129,7 +130,7 @@ end;
 
 procedure TestTFirebirdDatabaseUpgraderRunner.TestRunUpgrade;
 begin
-  CheckTrue(TestSetup.RunUpgrade);
+  CheckTrue(TestSetup.RunUpgrade(SampleUpgraderProcessCollection));
 end;
 
 initialization

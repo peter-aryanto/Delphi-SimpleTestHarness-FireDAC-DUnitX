@@ -3,19 +3,23 @@ unit DatabaseUpgraderProcess;
 interface
 
 uses
-  CommonDatabaseUpgraderRunner;
+  Data.DB,
+  FireDAC.Comp.Client;
 
 type
   TDatabaseUpgraderProcessClass = class of TDatabaseUpgraderProcess;
   TDatabaseUpgraderProcess = class abstract(TObject)
   private
-    procedure ValidateRunner(const ARunner: ICommonDatabaseUpgraderRunner);
+    FDatabaseConnection: TFDConnection;
   public
+    constructor Create(const ADatabaseConnection: TCustomConnection);
+
     // The Compare method below is used for sorting TList<TDatabaseUpgraderProcessClass>.
     class function Compare(const ALeft, ARight: TDatabaseUpgraderProcessClass): Integer;
 
-    procedure RunBeforeUpgraderScript(const ARunner: ICommonDatabaseUpgraderRunner); virtual;
-    procedure RunAfterUpgraderScript(const ARunner: ICommonDatabaseUpgraderRunner); virtual;
+    procedure RunBeforeUpgraderScript; virtual;
+    procedure RunUpgraderScript; virtual;
+    procedure RunAfterUpgraderScript; virtual;
   end;
 
 
@@ -26,6 +30,14 @@ uses
 
 { TDatabaseUpgraderProcess }
 
+constructor TDatabaseUpgraderProcess.Create(const ADatabaseConnection: TCustomConnection);
+begin
+  if not (Assigned(ADatabaseConnection) and (ADatabaseConnection is TFDConnection)) then
+    raise Exception.Create('Missing database connection for creating ' + Self.ClassName + '.');
+
+  FDatabaseConnection := TFDConnection(ADatabaseConnection);
+end;
+
 class function TDatabaseUpgraderProcess.Compare(
   const ALeft, ARight: TDatabaseUpgraderProcessClass
 ): Integer;
@@ -33,22 +45,19 @@ begin
   Result := CompareText(ALeft.ClassName, ARight.ClassName);
 end;
 
-procedure TDatabaseUpgraderProcess.ValidateRunner(const ARunner: ICommonDatabaseUpgraderRunner);
+procedure TDatabaseUpgraderProcess.RunBeforeUpgraderScript;
 begin
-  if not Assigned(ARunner) then
-    raise Exception.Create('Missing database upgrader runner for ' + Self.ClassName + '.');
+  // Do nothing. Sub-class will override as needed.
 end;
 
-procedure TDatabaseUpgraderProcess.RunAfterUpgraderScript(
-  const ARunner: ICommonDatabaseUpgraderRunner);
+procedure TDatabaseUpgraderProcess.RunAfterUpgraderScript;
 begin
-  ValidateRunner(ARunner);
+  // Do nothing. Sub-class will override as needed.
 end;
 
-procedure TDatabaseUpgraderProcess.RunBeforeUpgraderScript(
-  const ARunner: ICommonDatabaseUpgraderRunner);
+procedure TDatabaseUpgraderProcess.RunUpgraderScript;
 begin
-  ValidateRunner(ARunner);
+  // Do nothing. Sub-class will override as needed.
 end;
 
 end.

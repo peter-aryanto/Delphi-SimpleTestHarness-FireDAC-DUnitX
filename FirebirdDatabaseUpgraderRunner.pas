@@ -7,7 +7,8 @@ uses
   FireDAC.Comp.Client,
   FireDAC.Phys.FB,
   CommonDatabaseUpgraderQuery,
-  Data.DB;
+  Data.DB,
+  DatabaseUpgraderProcessCollection;
 
 type
   TFirebirdDatabaseUpgraderRunner = class(TCommonDatabaseUpgraderRunner)
@@ -20,6 +21,8 @@ type
     {For property DatabaseLocation:}
       function GetDatabaseLocation: string; reintroduce;
       procedure SetDatabaseLocation(const ADatabaseLocation: string); override;
+
+    procedure UpdateDatabaseVersion(const ANewDatabaseVersionAsString: string); override;
   public
     constructor Create(const AFbEmbedFile: string);
     destructor Destroy; override;
@@ -30,7 +33,6 @@ type
     procedure StartTransaction; override;
     procedure CommitTransaction; override;
     procedure RollbackTransaction; override;
-    function RunUpgrade: Boolean; override;
   end;
 
 implementation
@@ -91,18 +93,6 @@ begin
   LQuery.Sql := ASql;
 
   Result := LQuery;
-{
-  // Future plan for running SQL upgrader scripts.
-  FScript := TFDScript.Create(nil);
-  FScript.Connection := FDbConnection;
-  FScript.ScriptOptions.CommitEachNCommands := 1;
-  FScript.ScriptOptions.BreakOnError := True;
-  FScript.OnError := ScriptError;
-  // Usage with the actual script as below.
-  FScript.SQLScripts.Clear;
-  FScript.SQLScripts.Add;
-  FScript.SQLScripts[0].SQL.Text := AScriptCollection;
-}
 end;
 
 function TFirebirdDatabaseUpgraderRunner.GetDatabaseConnection: TCustomConnection;
@@ -175,11 +165,6 @@ begin
   FDatabaseConnection.Transaction.Rollback;
 end;
 
-function TFirebirdDatabaseUpgraderRunner.RunUpgrade: Boolean;
-begin
-  Result := inherited RunUpgrade;
-end;
-
 function TFirebirdDatabaseUpgraderRunner.GetDatabaseLocation;
 begin
   Result := FDatabaseConnection.Params.Database;
@@ -189,6 +174,26 @@ procedure TFirebirdDatabaseUpgraderRunner.SetDatabaseLocation(const ADatabaseLoc
 begin
   inherited SetDatabaseLocation(ADatabaseLocation);
   FDatabaseConnection.Params.Database := inherited GetDatabaseLocation;
+end;
+
+procedure TFirebirdDatabaseUpgraderRunner.UpdateDatabaseVersion(
+  const ANewDatabaseVersionAsString: string);
+const
+  CVersionNumberParam = 'VersionNumber';
+begin
+  StartTransaction;
+  try
+    CreateQuery('update version set version_number = :version_number')
+      .ExecuteNonSelectQuery([ANewDatabaseVersionAsString]);
+
+    CommitTransaction;
+
+  except
+    on E: Exception do
+    begin
+      RollbackTransaction;
+    end;
+  end;
 end;
 
 end.

@@ -12,9 +12,12 @@ type
     function GetProcess(const AIndex: Integer): TDatabaseUpgraderProcessClass;
     procedure RegisterProcess(const AProcess: TDatabaseUpgraderProcessClass);
     function GetTargetDatabaseVersion(const AProcess: TDatabaseUpgraderProcessClass): Integer;
+{
     function GetIndexOfNextProcess(const ACurrentDatabaseVersion: Integer;
       const AIndexToStartSearch: Integer = 0
     ): Integer;
+}
+    function GetProcessCount: Integer;
   end;
 
   TDatabaseUpgraderProcessCollection = class(TInterfacedObject, IDatabaseUpgraderProcessCollection)
@@ -28,12 +31,17 @@ type
   public
     constructor Create(const AProcessNamePrefix: string);
     destructor Destroy; override;
+
+    function GetTargetDatabaseVersion(const AProcess: TDatabaseUpgraderProcessClass): Integer;
+
     function GetProcess(const AIndex: Integer): TDatabaseUpgraderProcessClass;
     procedure RegisterProcess(const AProcess: TDatabaseUpgraderProcessClass);
-    function GetTargetDatabaseVersion(const AProcess: TDatabaseUpgraderProcessClass): Integer;
+{
     function GetIndexOfNextProcess(const ACurrentDatabaseVersion: Integer;
       const AIndexToStartSearch: Integer = 0
     ): Integer;
+}
+    function GetProcessCount: Integer;
   end;
 
 implementation
@@ -113,28 +121,30 @@ begin
   end;
 end;
 
-function TDatabaseUpgraderProcessCollection.GetIndexOfNextProcess(
-  const ACurrentDatabaseVersion: Integer;
-  const AIndexToStartSearch: Integer = 0
-): Integer;
-var
-  LIndex: Integer;
+//function TDatabaseUpgraderProcessCollection.GetIndexOfNextProcess(
+//  const ACurrentDatabaseVersion: Integer;
+//  const AIndexToStartSearch: Integer = 0
+//): Integer;
+//var
+//  LIndex: Integer;
+//begin
+//  Result := CIndexNotFound;
+//
+//  if AIndexToStartSearch <= CIndexNotFound then
+//    Exit;
+//
+//  for LIndex := AIndexToStartSearch to FSortedProcessList.Count - 1 do begin
+//    if GetTargetDatabaseVersion(FSortedProcessList[LIndex]) > ACurrentDatabaseVersion then
+//    begin
+//      Result := LIndex;
+//      Exit;
+//    end;
+//  end;
+//end;
+
+function TDatabaseUpgraderProcessCollection.GetProcessCount: Integer;
 begin
-  Result := CIndexNotFound;
-
-  if AIndexToStartSearch = CIndexNotFound then
-    Exit;
-
-  if AIndexToStartSearch < CIndexNotFound then
-    raise Exception.Create('Invalid Index to start searching for database upgrader process.');
-
-  for LIndex := AIndexToStartSearch to FSortedProcessList.Count - 1 do begin
-    if GetTargetDatabaseVersion(FSortedProcessList[LIndex]) > ACurrentDatabaseVersion then
-    begin
-      Result := LIndex;
-      Exit;
-    end;
-  end;
+  Result := FSortedProcessList.Count;
 end;
 
 end.

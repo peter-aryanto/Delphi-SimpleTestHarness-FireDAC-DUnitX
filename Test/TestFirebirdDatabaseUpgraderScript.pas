@@ -83,7 +83,6 @@ var
 begin
   LTestScriptStatements := GetTestDdlScriptStatement(CNewTableName1) + #13#10 
       + GetTestDdlScriptStatement(CNewTableName2);
-//  TestSetup.ExecuteScripts(LTestScriptStatements);
   CreateScript.ExecuteScript(LTestScriptStatements);
 
   LSelectQueryForCheckingScriptRunResult := TestTFirebirdDatabaseUpgraderQuery.CreateQuery(

@@ -50,7 +50,7 @@ begin
 
     LRunner.DatabaseLocation := LTestDbFile;
 
-    Result := LRunner.RunUpgrade;
+    Result := LRunner.RunUpgrade(nil);
 
     if Result then
       Writeln('Successfully completed upgrading database file: ' + LRunner.DatabaseLocation)
