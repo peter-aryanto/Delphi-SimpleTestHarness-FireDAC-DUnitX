@@ -9,17 +9,25 @@ uses
 type
   TDatabaseUpgraderProcessClass = class of TDatabaseUpgraderProcess;
   TDatabaseUpgraderProcess = class abstract(TObject)
+  protected type
+    TDatabaseUpgraderProcessProcedure = procedure of object;
   private
     FDatabaseConnection: TFDConnection;
+    FOnBeforeUpgraderScript: TDatabaseUpgraderProcessProcedure;
+    FOnUpgraderScript: TDatabaseUpgraderProcessProcedure;
+    FOnAfterUpgraderScript: TDatabaseUpgraderProcessProcedure;
   public
-    constructor Create(const ADatabaseConnection: TCustomConnection);
+    constructor Create(const ADatabaseConnection: TCustomConnection); virtual;
 
     // The Compare method below is used for sorting TList<TDatabaseUpgraderProcessClass>.
     class function Compare(const ALeft, ARight: TDatabaseUpgraderProcessClass): Integer;
 
-    procedure RunBeforeUpgraderScript; virtual;
-    procedure RunUpgraderScript; virtual;
-    procedure RunAfterUpgraderScript; virtual;
+    property OnBeforeUpgraderScript: TDatabaseUpgraderProcessProcedure
+      read FOnBeforeUpgraderScript;
+    property OnUpgraderScript: TDatabaseUpgraderProcessProcedure
+      read FOnUpgraderScript;
+    property OnAfterUpgraderScript: TDatabaseUpgraderProcessProcedure
+      read FOnAfterUpgraderScript;
   end;
 
 
@@ -43,21 +51,6 @@ class function TDatabaseUpgraderProcess.Compare(
 ): Integer;
 begin
   Result := CompareText(ALeft.ClassName, ARight.ClassName);
-end;
-
-procedure TDatabaseUpgraderProcess.RunBeforeUpgraderScript;
-begin
-  // Do nothing. Sub-class will override as needed.
-end;
-
-procedure TDatabaseUpgraderProcess.RunAfterUpgraderScript;
-begin
-  // Do nothing. Sub-class will override as needed.
-end;
-
-procedure TDatabaseUpgraderProcess.RunUpgraderScript;
-begin
-  // Do nothing. Sub-class will override as needed.
 end;
 
 end.

@@ -57,6 +57,11 @@ begin
   FFirebirdDatabaseUpgraderRunner := TFirebirdDatabaseUpgraderRunner.Create(FCurrentApplicationPath
       + CTestFbEmbeddedFile);
 
+  FFirebirdDatabaseUpgraderRunner.OnMessage := procedure (const AMessage: string)
+    begin
+      Writeln(AMessage);
+    end;
+
   Result := FFirebirdDatabaseUpgraderRunner;
 end;
 

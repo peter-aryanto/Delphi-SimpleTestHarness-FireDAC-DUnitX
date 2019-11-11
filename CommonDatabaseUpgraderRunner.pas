@@ -18,6 +18,7 @@ type
     function GetErrorMessage: string;
     function GetErrorDetails: string;
     procedure UpdateDatabaseVersion(const ANewDatabaseVersionAsString: string);
+    procedure OutputMessage(const AMessage: string);
   end;
 
   ICommonDatabaseUpgraderRunner = interface(IInternalCommonDatabaseUpgraderRunner)
@@ -47,6 +48,7 @@ type
     procedure SetOnMessage(const AOnMessage: TDatabaseUpgraderRunnerOnMessage);
     function GetErrorMessage: string;
     function GetErrorDetails: string;
+    procedure OutputMessage(const AMessage: string);
   private
     procedure ResetError;
   protected {Interface methods}
@@ -103,18 +105,31 @@ begin
     LTargetDatabaseVersionAsString := GetDatabaseVersionAsString(LTargetDatabaseVersion);
     LProcessObject := LProcessClass.Create(GetDatabaseConnection);
     try
-      //Plan for: Log.Info('Running upgrader process before script for version ' + LTargetDatabaseVersionAsString);
-      LProcessObject.RunBeforeUpgraderScript;
+      if Assigned(LProcessObject.OnBeforeUpgraderScript) then
+      begin
+        {Log.Info}OutputMessage(
+          'Running upgrader process before script for version ' + LTargetDatabaseVersionAsString);
+        LProcessObject.OnBeforeUpgraderScript;
+      end;
 
-      //Plan for: Log.Info('Running upgrader script for version ' + LTargetDatabaseVersionAsString);
-      LProcessObject.RunUpgraderScript;
+      if Assigned(LProcessObject.OnUpgraderScript) then
+      begin
+        {Log.Info}OutputMessage(
+          'Running upgrader script for version ' + LTargetDatabaseVersionAsString);
+        LProcessObject.OnUpgraderScript;
+      end;
 
-      //Plan for: Log.Info('Running upgrader process after script for version ' + LTargetDatabaseVersionAsString);
-      LProcessObject.RunAfterUpgraderScript;
+      if Assigned(LProcessObject.OnAfterUpgraderScript) then
+      begin
+        {Log.Info}OutputMessage(
+          'Running upgrader process after script for version ' + LTargetDatabaseVersionAsString);
+        LProcessObject.OnAfterUpgraderScript;
+      end;
 
-      //Plan for: Log.Info('Updating database version to ' + LTargetDatabaseVersionAsString);
+      {Log.Info}OutputMessage('Updating database version to ' + LTargetDatabaseVersionAsString);
       UpdateDatabaseVersion(LTargetDatabaseVersionAsString);
-      //Plan for: Log.Info('Successfully upgraded database to version ' + LTargetDatabaseVersionAsString);
+      {Log.Info}OutputMessage(
+        'Successfully upgraded database to version ' + LTargetDatabaseVersionAsString);
 
       LCurrentDatabaseVersion := GetDatabaseVersionAsInteger;
       if LCurrentDatabaseVersion <> LTargetDatabaseVersion then
@@ -170,6 +185,12 @@ procedure TCommonDatabaseUpgraderRunner.ResetError;
 begin
   FErrorMessage := '';
   FErrorDetails := '';
+end;
+
+procedure TCommonDatabaseUpgraderRunner.OutputMessage(const AMessage: string);
+begin
+  if Assigned(FOnMessage) then
+    FOnMessage(AMessage);
 end;
 
 end.
