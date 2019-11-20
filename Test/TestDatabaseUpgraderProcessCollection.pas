@@ -3,19 +3,22 @@ unit TestDatabaseUpgraderProcessCollection;
 interface
 
 uses
-  TestFramework,
+  DUnitX.TestFramework, DUnitX.Assert,
   DatabaseUpgraderProcessCollection;
 
 type
-  TestTDatabaseUpgraderProcessCollection = class(TTestCase)
+  TestTDatabaseUpgraderProcessCollection = class
   strict private
     FDatabaseUpgraderProcessCollection: IDatabaseUpgraderProcessCollection;
     procedure RegisterTestProcess;
   public
-    procedure SetUp; override;
-  published
+    [Setup]
+    procedure SetUp;
+    [Test]
     procedure TestGetProcess;
+    [Test]
     procedure TestRegisterProcess;
+    [Test]
     procedure TestGetTargetDatabaseVersion;
 //    procedure TestGetIndexOfNextProcess;
   end;
@@ -41,26 +44,29 @@ end;
 
 procedure TestTDatabaseUpgraderProcessCollection.TestGetProcess;
 begin
-  Check(FDatabaseUpgraderProcessCollection.GetProcess(0) = nil);
+  Assert.IsNull(FDatabaseUpgraderProcessCollection.GetProcess(0));
   FDatabaseUpgraderProcessCollection.RegisterProcess(TSampleDatabaseUpgraderProcess1111);
-  Check(FDatabaseUpgraderProcessCollection.GetProcess(0) = TSampleDatabaseUpgraderProcess1111);
+  Assert.AreEqual(FDatabaseUpgraderProcessCollection.GetProcess(0).ClassName,
+    TSampleDatabaseUpgraderProcess1111.ClassName);
 end;
 
 procedure TestTDatabaseUpgraderProcessCollection.TestRegisterProcess;
 begin
   RegisterTestProcess;
-  Check(FDatabaseUpgraderProcessCollection.GetProcess(0) = TSampleDatabaseUpgraderProcess1111);
-  Check(FDatabaseUpgraderProcessCollection.GetProcess(1) = TSampleDatabaseUpgraderProcess9999);
-  CHeck(FDatabaseUpgraderProcessCollection.GetProcess(2) = nil);
+  Assert.AreEqual(FDatabaseUpgraderProcessCollection.GetProcess(0).ClassName,
+    TSampleDatabaseUpgraderProcess1111.ClassName);
+  Assert.AreEqual(FDatabaseUpgraderProcessCollection.GetProcess(1).ClassName,
+    TSampleDatabaseUpgraderProcess9999.ClassName);
+  Assert.IsNull(FDatabaseUpgraderProcessCollection.GetProcess(2));
 end;
 
 procedure TestTDatabaseUpgraderProcessCollection.TestGetTargetDatabaseVersion;
 begin
   RegisterTestProcess;
-  CheckEquals(1111,
+  Assert.AreEqual(1111,
     FDatabaseUpgraderProcessCollection.GetTargetDatabaseVersion(
       TSampleDatabaseUpgraderProcess1111));
-  CheckEquals(9999,
+  Assert.AreEqual(9999,
     FDatabaseUpgraderProcessCollection.GetTargetDatabaseVersion(
       TSampleDatabaseUpgraderProcess9999));
 end;
@@ -82,6 +88,6 @@ end;
 
 initialization
   // Register any test cases with the test runner
-  RegisterTest(TestTDatabaseUpgraderProcessCollection.Suite);
+  TDUnitX.RegisterTestFixture(TestTDatabaseUpgraderProcessCollection);
 end.
 

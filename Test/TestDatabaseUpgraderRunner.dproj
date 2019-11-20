@@ -129,6 +129,7 @@
                 <TestFramework>DUnit / Delphi Win32</TestFramework>
                 <TestRunner>Console</TestRunner>
                 <SourceProjectName>C:\Projects\DatabaseUpgraderRunner\DatabaseUpgraderRunner.dproj</SourceProjectName>
+                <TestProjectName/>
             </UnitTesting>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>

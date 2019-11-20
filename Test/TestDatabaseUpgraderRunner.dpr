@@ -17,8 +17,8 @@ program TestDatabaseUpgraderRunner;
 {$R *.RES}
 
 uses
-  {DUnitTestRunner}TextTestRunner,
-  TestFramework,
+  DUnitX.TestFramework,
+  DUnitX.Loggers.Console,
   System.SysUtils,
   BackupOriginalFile,
   TestConstants,
@@ -34,8 +34,8 @@ var
   GCurrentApplicationPath: string = '';
   GTestDbFileBackup: IBackupOriginalFile = nil;
   GTestDbFile: string = '';
-  GTestResult: TTestResult = nil;
-  GIsEveryTestPassed: Boolean = False;
+  GTestRunner: ITestRunner = nil;
+  GTestResult: IRunResults = nil;
 
 begin
 {$IFDEF DEBUG}
@@ -48,19 +48,19 @@ begin
     GTestDbFile := GTestDbFileBackup.CreateBackup(GCurrentApplicationPath + COriginalTestDbFile,
       CTestDbFileExtension);
 
-    GTestResult := {DUnitTestRunner}TextTestRunner.RunRegisteredTests;
+    GTestRunner := TDUnitX.CreateRunner;
+    GTestRunner.AddLogger(TDUnitXConsoleLogger.Create(True {quietMode}));
+    GTestResult := GTestRunner.Execute;
 
-    GIsEveryTestPassed := GTestResult.ErrorCount + GTestResult.FailureCount = 0;
   finally
-    GTestResult.Free;
 
   {$IFDEF DEBUG}
     Write('Press ENTER ... ');
     Readln;
   {$ENDIF}
 
-    if not GIsEveryTestPassed then
-      ExitCode := 1;
+    if not GTestResult.AllPassed then
+      ExitCode := EXIT_ERRORS;
   end;
 
 end.

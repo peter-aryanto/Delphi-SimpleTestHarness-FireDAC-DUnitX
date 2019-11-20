@@ -3,37 +3,44 @@ unit TestFirebirdDatabaseUpgraderRunner;
 interface
 
 uses
-  TestFramework, TestExtensions,
+  DUnitX.TestFramework, DUnitX.Assert,
   CommonDatabaseUpgraderRunner, FirebirdDatabaseUpgraderRunner,
   FireDAC.Comp.Client;
 
 type
-  TestSetupFirebirdDatabaseUpgraderRunner = class(TTestSetup)
+  TestSetupFirebirdDatabaseUpgraderRunner = class
   strict private
-    class var FCurrentApplicationPath: string;
-    class var FFirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner;
+    class function GetCurrentApplicationPath: string;
   protected
-    procedure SetUp; override;
   public
     class function CreateRunner: ICommonDatabaseUpgraderRunner;
-    class procedure SetTestDbLocation;
-    class property CurrentApplicationPath: string read FCurrentApplicationPath;
-    class property FirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner
-      read FFirebirdDatabaseUpgraderRunner;
+    class procedure AssignTestDatabaseLocation(
+      const AFirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner);
+    class function GetTestDatabaseLocation: string;
   end;
 
-  TestTFirebirdDatabaseUpgraderRunner = class(TTestCase)
+  TestTFirebirdDatabaseUpgraderRunner = class
   strict private
-    function TestSetup: ICommonDatabaseUpgraderRunner;
+    FFirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner;
     function GetTestDatabaseTransaction: TFDTransaction;
-  published
+  public
+    [SetupFixture]
+    procedure SetUp;
+    [Test]
     procedure TestGetDatabaseLocation;
+    [Test]
     procedure TestSetDatabaseLocation;
+    [Test]
     procedure TestGetDatabaseVersionAsInteger;
+    [Test]
     procedure TestGetDatabaseVersionAsString;
+    [Test]
     procedure TestStartTransaction;
+    [Test]
     procedure TestCommitTransaction;
+    [Test]
     procedure TestRollbackTransaction;
+    [Test]
     procedure TestRunUpgrade;
   end;
 
@@ -42,74 +49,82 @@ implementation
 uses
   TestConstants,
   System.SysUtils,
-  SampleDatabaseUpgraderProcessCollection;
-
-procedure TestSetupFirebirdDatabaseUpgraderRunner.SetUp;
-begin
-  TestSetupFirebirdDatabaseUpgraderRunner.CreateRunner;
-end;
+  SampleDatabaseUpgraderProcessCollection,
+  Winapi.Windows;
 
 class function TestSetupFirebirdDatabaseUpgraderRunner.CreateRunner: ICommonDatabaseUpgraderRunner;
 begin
-  FCurrentApplicationPath := ExtractFilePath(ParamStr(0));
+  Result := TFirebirdDatabaseUpgraderRunner.Create(GetCurrentApplicationPath + CTestFbEmbeddedFile);
+end;
 
-  FFirebirdDatabaseUpgraderRunner := nil;
-  FFirebirdDatabaseUpgraderRunner := TFirebirdDatabaseUpgraderRunner.Create(FCurrentApplicationPath
-      + CTestFbEmbeddedFile);
+class function TestSetupFirebirdDatabaseUpgraderRunner.GetCurrentApplicationPath;
+begin
+  Result := ExtractFilePath(ParamStr(0));
+end;
+
+class procedure TestSetupFirebirdDatabaseUpgraderRunner.AssignTestDatabaseLocation(
+  const AFirebirdDatabaseUpgraderRunner: ICommonDatabaseUpgraderRunner);
+begin
+  AFirebirdDatabaseUpgraderRunner.DatabaseLocation := GetTestDatabaseLocation;
+end;
+
+class function TestSetupFirebirdDatabaseUpgraderRunner.GetTestDatabaseLocation: string;
+begin
+  Result := GetCurrentApplicationPath + CTestDbFile;
+end;
+
+procedure TestTFirebirdDatabaseUpgraderRunner.SetUp;
+var
+  LConsoleInfo: TConsoleScreenBufferInfo;
+begin
+  FFirebirdDatabaseUpgraderRunner := TestSetupFirebirdDatabaseUpgraderRunner.CreateRunner;
 
   FFirebirdDatabaseUpgraderRunner.OnMessage := procedure (const AMessage: string)
     begin
-      Writeln(AMessage);
+      GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), LConsoleInfo);
+      if LConsoleInfo.dwCursorPosition.X > 0 then System.Writeln;
+      System.Writeln('>>>>>> [Ouput]:  ' + AMessage);
     end;
-
-  Result := FFirebirdDatabaseUpgraderRunner;
-end;
-
-class procedure TestSetupFirebirdDatabaseUpgraderRunner.SetTestDbLocation;
-begin
-  FFirebirdDatabaseUpgraderRunner.DatabaseLocation :=
-    TestSetupFirebirdDatabaseUpgraderRunner.CurrentApplicationPath + CTestDbFile;
-end;
-
-function TestTFirebirdDatabaseUpgraderRunner.TestSetup: ICommonDatabaseUpgraderRunner;
-begin
-  Result := TestSetupFirebirdDatabaseUpgraderRunner.FirebirdDatabaseUpgraderRunner;
 end;
 
 procedure TestTFirebirdDatabaseUpgraderRunner.TestGetDatabaseLocation;
 begin
-  CheckEquals('', TestSetup.DatabaseLocation);
+  Assert.AreEqual('', FFirebirdDatabaseUpgraderRunner.DatabaseLocation);
 end;
 
 procedure TestTFirebirdDatabaseUpgraderRunner.TestSetDatabaseLocation;
 begin
-  TestSetupFirebirdDatabaseUpgraderRunner.SetTestDbLocation;
-  CheckEquals(TestSetupFirebirdDatabaseUpgraderRunner.CurrentApplicationPath + CTestDbFile,
-    TestSetup.DatabaseLocation);
+  TestSetupFirebirdDatabaseUpgraderRunner.AssignTestDatabaseLocation(
+    FFirebirdDatabaseUpgraderRunner);
+  Assert.AreEqual(TestSetupFirebirdDatabaseUpgraderRunner.GetTestDatabaseLocation,
+    FFirebirdDatabaseUpgraderRunner.DatabaseLocation);
 end;
 
 procedure TestTFirebirdDatabaseUpgraderRunner.TestGetDatabaseVersionAsInteger;
 begin
-  CheckEquals(TestSetup.GetDatabaseVersionAsInteger, CInitialDbVersionAsInteger);
+  Assert.AreEqual(CInitialDbVersionAsInteger,
+    FFirebirdDatabaseUpgraderRunner.GetDatabaseVersionAsInteger);
 end;
 
 procedure TestTFirebirdDatabaseUpgraderRunner.TestGetDatabaseVersionAsString;
 begin
-  CheckEquals(TestSetup.GetDatabaseVersionAsString(TestSetup.GetDatabaseVersionAsInteger),
-    CInitialDbVersionAsString);
+  Assert.AreEqual(CInitialDbVersionAsString,
+    FFirebirdDatabaseUpgraderRunner.GetDatabaseVersionAsString(
+      FFirebirdDatabaseUpgraderRunner.GetDatabaseVersionAsInteger));
 end;
 
 function TestTFirebirdDatabaseUpgraderRunner.GetTestDatabaseTransaction: TFDTransaction;
 begin
-  Result := (TestSetup.GetDatabaseConnection as TFDConnection).Transaction as TFDTransaction;
+  Result := (FFirebirdDatabaseUpgraderRunner.GetDatabaseConnection as TFDConnection)
+    .Transaction as TFDTransaction;
 end;
 
 procedure TestTFirebirdDatabaseUpgraderRunner.TestStartTransaction;
 begin
-  CheckTrue(not GetTestDatabaseTransaction.Active,
+  Assert.IsTrue(not GetTestDatabaseTransaction.Active,
     'Initially, it is expected that database transaction is NOT active.');
-  TestSetup.StartTransaction;
-  CheckTrue(GetTestDatabaseTransaction.Active,
+  FFirebirdDatabaseUpgraderRunner.StartTransaction;
+  Assert.IsTrue(GetTestDatabaseTransaction.Active,
     'After being started, database transaction should be active.');
 end;
 
@@ -118,8 +133,8 @@ begin
   if not GetTestDatabaseTransaction.Active then
     TestStartTransaction;
 
-  TestSetup.CommitTransaction;
-  CheckTrue(not GetTestDatabaseTransaction.Active,
+  FFirebirdDatabaseUpgraderRunner.CommitTransaction;
+  Assert.IsTrue(not GetTestDatabaseTransaction.Active,
     'After commit, it is expected that database transaction is NO longer active.');
 end;
 
@@ -128,17 +143,16 @@ begin
   if not GetTestDatabaseTransaction.Active then
     TestStartTransaction;
 
-  TestSetup.RollbackTransaction;
-  CheckTrue(not GetTestDatabaseTransaction.Active,
+  FFirebirdDatabaseUpgraderRunner.RollbackTransaction;
+  Assert.IsTrue(not GetTestDatabaseTransaction.Active,
     'After rollback, it is expected that database transaction is NO longer active.');
 end;
 
 procedure TestTFirebirdDatabaseUpgraderRunner.TestRunUpgrade;
 begin
-  CheckTrue(TestSetup.RunUpgrade(SampleUpgraderProcessCollection));
+  Assert.IsTrue(FFirebirdDatabaseUpgraderRunner.RunUpgrade(SampleUpgraderProcessCollection));
 end;
 
 initialization
-  RegisterTest(TestSetupFirebirdDatabaseUpgraderRunner.Create(
-    TestTFirebirdDatabaseUpgraderRunner.Suite));
+  TDUnitX.RegisterTestFixture(TestTFirebirdDatabaseUpgraderRunner);
 end.

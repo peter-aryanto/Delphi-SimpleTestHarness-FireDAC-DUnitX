@@ -3,12 +3,12 @@ unit TestFirebirdDatabaseUpgraderScript;
 interface
 
 uses
-  TestFramework,
+  DUnitX.TestFramework, DUnitX.Assert,
   CommonDatabaseUpgraderRunner,
   CommonDatabaseUpgraderScript, FirebirdDatabaseUpgraderScript;
 
 type
-  TestTFirebirdDatabaseUpgraderScript = class(TTestCase)
+  TestTFirebirdDatabaseUpgraderScript = class
   strict private const
     CTestNewTableField = 'NEW_TABLE_FIELD';
   strict private
@@ -17,8 +17,9 @@ type
     function GetTestDdlScriptStatement(const ATableName: string): string;
     function GetTestDmlScriptStatement(const ATableName: string): string;
   public
-    procedure SetUp; override;
-  published
+    [SetupFixture]
+    procedure SetUp;
+    [Test]
     procedure TestExecuteScript;
   end;
 
@@ -34,7 +35,8 @@ uses
 procedure TestTFirebirdDatabaseUpgraderScript.SetUp;
 begin
   FFirebirdDatabaseUpgraderRunner := TestSetupFirebirdDatabaseUpgraderRunner.CreateRunner;
-  TestSetupFirebirdDatabaseUpgraderRunner.SetTestDbLocation;
+  TestSetupFirebirdDatabaseUpgraderRunner.AssignTestDatabaseLocation(
+    FFirebirdDatabaseUpgraderRunner);
 end;
 
 function TestTFirebirdDatabaseUpgraderScript.CreateScript: ICommonDatabaseUpgraderScript;
@@ -90,18 +92,18 @@ begin
   LSelectQueryForCheckingScriptRunResult.Sql := ' select 1 from ' + CNewTableName1 + ' union all '
       + ' select 1 from ' + CNewTableName2;
   LQueryResult := LSelectQueryForCheckingScriptRunResult.ExecuteSelectQuery([]);
-  CheckEquals(0, LQueryResult.RecordCount);
+  Assert.AreEqual(0, LQueryResult.RecordCount);
 
-  LTestScriptStatements := GetTestDmlScriptStatement(CNewTableName1) + #13#10 
+  LTestScriptStatements := GetTestDmlScriptStatement(CNewTableName1) + #13#10
       + GetTestDmlScriptStatement(CNewTableName2);
   CreateScript.ExecuteScript(LTestScriptStatements);
 
   LQueryResult := LSelectQueryForCheckingScriptRunResult.ExecuteSelectQuery([]);
-  CheckEquals(2, LQueryResult.RecordCount);
+  Assert.AreEqual(2, LQueryResult.RecordCount);
 end;
 
 initialization
   // Register any test cases with the test runner
-  RegisterTest(TestTFirebirdDatabaseUpgraderScript.Suite);
+  TDUnitX.RegisterTestFixture(TestTFirebirdDatabaseUpgraderScript);
 end.
 
